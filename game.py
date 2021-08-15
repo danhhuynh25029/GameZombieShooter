@@ -122,17 +122,35 @@ class Zombie:
 	def Draw(self,cX,cY):
 		if self.x < cX:
 			self.x += 1
+			self.setFalse("right")
 			self.screen.blit(self.images[1],(self.x,self.y))
 		elif self.y < cY:
 			self.y += 1
+			self.setFalse("down")
 			self.screen.blit(self.images[3],(self.x,self.y))
 		elif self.x > cX:
 			self.x -= 1
+			self.setFalse("left")
 			self.screen.blit(self.images[0],(self.x,self.y))
 		elif self.y > cY:
 			self.y -= 1
+			self.setFalse("up")
 			self.screen.blit(self.images[2],(self.x,self.y))
 		# self.screen.blit(self.images[0],(self.x,self.y))
+	def setFalse(self,s:str):
+		tmp = {
+		"left" : 0,
+		"right" : 1,
+		"up" : 2,
+		"down" : 3
+		}
+		listCheck = [False,False,False,False]
+		listCheck[tmp[s]] = True
+		# print(tmp[s])
+		self.left = listCheck[0]
+		self.right = listCheck[1]
+		self.up = listCheck[2]
+		self.down = listCheck[3]
 class Bullet:
 	def __init__(self,screen,x,y,sX,sY):
 		self.posX = x
