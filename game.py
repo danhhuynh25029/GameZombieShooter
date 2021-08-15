@@ -10,9 +10,6 @@ class Game:
 		self.player = Player(self.screen)
 		self.clock = pygame.time.Clock()
 		self.listZombie = []
-		for i in range(1):
-			zombie = Zombie(self.screen,random.randrange(0,700),random.randrange(0,500))
-			self.listZombie.append(zombie) 
 	def Run(self):
 		while self.run:
 			self.clock.tick(60)
@@ -23,17 +20,42 @@ class Game:
 			self.player.Controller()
 			self.player.Draw()
 			self.checkCollision()
-			pygame.display.update()
-			
+			self.addZombie()
+			pygame.display.update()			
 		pygame.display.quit()
+	def addZombie(self):
+		if len(self.listZombie) == 0:
+			for i in range(1):
+				zombie = Zombie(self.screen,random.randrange(0,700),random.randrange(0,500))
+				self.listZombie.append(zombie)
+
 	def checkCollision(self):
-		for i in range(len(self.listZombie)):
-			for j in range(len(self.player.ammo)):
+		for i in self.listZombie:
+			if self.player.x + 70 > i.x and self.player.y +  69 > i.y:
+				self.player.die = True
+		for i in self.player.ammo:
+			if i.posX  > 750 or i.posX < 0:
+				self.player.ammo.remove(i)
+			if i.posY >550 or i.posY < 0:
+				self.player.ammo.remove(i)
+		for i in self.listZombie:
+			for j in self.player.ammo:
 				if len(self.listZombie) > 0:
-					if self.player.ammo[j].posX > self.listZombie[i].x and self.player.ammo[j].posY > self.listZombie[i].y:
-						self.listZombie.remove(self.listZombie[i])
+					if i.left == True:
+						if j.posY +5 > i.y and j.posY + 5  < i.y + 69 and j.posX > i.x and j.isRun == True:
+							self.listZombie.remove(i)
+					elif i.right == True:
+						if j.posY +5 > i.y and j.posY + 5  < i.y + 69 and j.posX < i.x and j.isRun == True:
+							self.listZombie.remove(i)
+					elif i.up == True:
+						if j.posX + 5 > i.x and j.posX + 5 < i.x + 70 and j.posY > i.y and j.isRun == True:
+							self.listZombie.remove(i)
+					elif i.down == True:
+						if j.posX + 5 > i.x and j.posX + 5 < i.x + 70 and j.posY < i.y and j.isRun == True:
+							self.listZombie.remove(i)
 			if len(self.listZombie) > 0:
-				self.listZombie[i].Draw(self.player.x,self.player.y)
+				i.Draw(self.player.x,self.player.y)
+		print(self.player.die)
 class Player:
 	def __init__(self,screen):
 		self.x = WIN_WIDTH // 2
@@ -49,6 +71,7 @@ class Player:
 		self.right = True
 		self.up = False
 		self.down = False
+		self.die = False
 		# self.bullet = pygame.draw.circle(self.screen,(255,255,255),(self.posX,self.posY))
 		for i in range(len(ImageChar)):
 			self.image.append(pygame.image.load("images/{}".format(ImageChar[i])))
@@ -56,7 +79,10 @@ class Player:
 		if self.fire == True:
 			for i in self.ammo:
 				i.Draw()
-		self.screen.blit(self.image[self.frame],(self.x,self.y))
+		if self.die == True:
+			self.screen.blit(pygame.image.load("images/dead.png"),(self.x,self.y))
+		else:	
+			self.screen.blit(self.image[self.frame],(self.x,self.y))
 	def Controller(self):
 		keys = pygame.key.get_pressed()
 		if keys[pygame.K_a]:
@@ -92,10 +118,10 @@ class Player:
 					self.ammo.append(Bullet(self.screen,self.x+38,self.y+100,0,10))
 	def setFalse(self,s:str):
 		tmp = {
-		"left" : 0,
-		"right" : 1,
-		"up" : 2,
-		"down" : 3
+			"left" : 0,
+			"right" : 1,
+			"up" : 2,
+			"down" : 3
 		}
 		listCheck = [False,False,False,False]
 		listCheck[tmp[s]] = True
@@ -139,10 +165,10 @@ class Zombie:
 		# self.screen.blit(self.images[0],(self.x,self.y))
 	def setFalse(self,s:str):
 		tmp = {
-		"left" : 0,
-		"right" : 1,
-		"up" : 2,
-		"down" : 3
+			"left" : 0,
+			"right" : 1,
+			"up" : 2,
+			"down" : 3
 		}
 		listCheck = [False,False,False,False]
 		listCheck[tmp[s]] = True
@@ -158,7 +184,9 @@ class Bullet:
 		self.sX = sX
 		self.sY = sY
 		self.screen = screen
+		self.isRun = False
 	def Draw(self):
+		self.isRun = True
 		self.posX = self.posX + self.sX
 		self.posY = self.posY + self.sY
 		pygame.draw.circle(self.screen,(255,255,255),(self.posX,self.posY),5)
