@@ -1,5 +1,6 @@
 import pygame
 from config import *
+import random
 pygame.init()
 
 class Game:
@@ -8,20 +9,31 @@ class Game:
 		self.run = True
 		self.player = Player(self.screen)
 		self.clock = pygame.time.Clock()
-		self.zombie = Zombie(self.screen,100,200) 
+		self.listZombie = []
+		for i in range(1):
+			zombie = Zombie(self.screen,random.randrange(0,700),random.randrange(0,500))
+			self.listZombie.append(zombie) 
 	def Run(self):
 		while self.run:
 			self.clock.tick(60)
 			for e in pygame.event.get():
 				if e.type == pygame.QUIT:
 					self.run = False
-			self.screen.fill((0,0,0))
+			self.screen.fill((0,255,0))
 			self.player.Controller()
 			self.player.Draw()
-			self.zombie.Draw()
+			self.checkCollision()
 			pygame.display.update()
 			
 		pygame.display.quit()
+	def checkCollision(self):
+		for i in range(len(self.listZombie)):
+			for j in range(len(self.player.ammo)):
+				if len(self.listZombie) > 0:
+					if self.player.ammo[j].posX > self.listZombie[i].x and self.player.ammo[j].posY > self.listZombie[i].y:
+						self.listZombie.remove(self.listZombie[i])
+			if len(self.listZombie) > 0:
+				self.listZombie[i].Draw(self.player.x,self.player.y)
 class Player:
 	def __init__(self,screen):
 		self.x = WIN_WIDTH // 2
@@ -43,31 +55,31 @@ class Player:
 	def Draw(self):
 		if self.fire == True:
 			for i in self.ammo:
-				i.draw()
+				i.Draw()
 		self.screen.blit(self.image[self.frame],(self.x,self.y))
 	def Controller(self):
 		keys = pygame.key.get_pressed()
 		if keys[pygame.K_a]:
 			self.frame = 0
-			self.x -= 1
+			self.x -= 5
 			# print(1)
 			self.setFalse("left")
 		elif keys[pygame.K_d]:
 			# self.x += 1
 			self.frame = 1
-			self.x += 1
+			self.x += 5
 			self.setFalse("right")
 		elif keys[pygame.K_w]:
 			self.frame = 2
-			self.y -= 1
+			self.y -= 5
 			self.setFalse("up")
 		elif keys[pygame.K_s]:
 			self.frame = 3
-			self.y += 1
+			self.y += 5
 			self.setFalse("down")
 		if keys[pygame.K_k]:
 			# self.ammo.clear()
-			print(self.right)
+			# print(self.right)
 			self.fire = True
 			for i in range(1):
 				if self.left == True:
@@ -87,7 +99,7 @@ class Player:
 		}
 		listCheck = [False,False,False,False]
 		listCheck[tmp[s]] = True
-		print(tmp[s])
+		# print(tmp[s])
 		self.left = listCheck[0]
 		self.right = listCheck[1]
 		self.up = listCheck[2]
@@ -100,12 +112,27 @@ class Zombie:
 		self.x = x
 		self.y = y
 		self.images = []
+		self.left = False
+		self.right = False
+		self.up = False
+		self.down = False
 		self.screen = screen
 		for i in range(len(ImageZombie)):
 			self.images.append(pygame.image.load("images/{}".format(ImageZombie[i])))
-	def Draw(self):
-		self.screen.blit(self.images[0],(self.x,self.y))
-
+	def Draw(self,cX,cY):
+		if self.x < cX:
+			self.x += 1
+			self.screen.blit(self.images[1],(self.x,self.y))
+		elif self.y < cY:
+			self.y += 1
+			self.screen.blit(self.images[3],(self.x,self.y))
+		elif self.x > cX:
+			self.x -= 1
+			self.screen.blit(self.images[0],(self.x,self.y))
+		elif self.y > cY:
+			self.y -= 1
+			self.screen.blit(self.images[2],(self.x,self.y))
+		# self.screen.blit(self.images[0],(self.x,self.y))
 class Bullet:
 	def __init__(self,screen,x,y,sX,sY):
 		self.posX = x
@@ -113,7 +140,7 @@ class Bullet:
 		self.sX = sX
 		self.sY = sY
 		self.screen = screen
-	def draw(self):
+	def Draw(self):
 		self.posX = self.posX + self.sX
 		self.posY = self.posY + self.sY
 		pygame.draw.circle(self.screen,(255,255,255),(self.posX,self.posY),5)
