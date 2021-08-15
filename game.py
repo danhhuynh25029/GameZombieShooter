@@ -8,8 +8,8 @@ class Game:
 		self.run = True
 		self.player = Player(self.screen)
 		self.clock = pygame.time.Clock()
+		self.zombie = Zombie(self.screen,100,200) 
 	def Run(self):
-
 		while self.run:
 			self.clock.tick(60)
 			for e in pygame.event.get():
@@ -18,6 +18,7 @@ class Game:
 			self.screen.fill((0,0,0))
 			self.player.Controller()
 			self.player.Draw()
+			self.zombie.Draw()
 			pygame.display.update()
 			
 		pygame.display.quit()
@@ -95,8 +96,16 @@ class Player:
 	# def DrawBullet(self):
 	# 	pygame.draw.circle(self.screen,(255,255,255),(self.posX+1,self.posY),30)
 class Zombie:
-	def __init__(self):
-		pass
+	def __init__(self,screen,x,y):
+		self.x = x
+		self.y = y
+		self.images = []
+		self.screen = screen
+		for i in range(len(ImageZombie)):
+			self.images.append(pygame.image.load("images/{}".format(ImageZombie[i])))
+	def Draw(self):
+		self.screen.blit(self.images[0],(self.x,self.y))
+
 class Bullet:
 	def __init__(self,screen,x,y,sX,sY):
 		self.posX = x
