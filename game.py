@@ -17,14 +17,16 @@ class Game:
 			for e in pygame.event.get():
 				if e.type == pygame.QUIT:
 					self.run = False
-			self.screen.fill((0,255,0))
+			self.screen.fill((65,65,65))
 			self.addZombie()
 			self.checkCollision()
 			self.player.Controller()
 			self.player.Draw()
 			
-			self.text = myfont.render(str(self.player.score),True,BLACK)
+			self.text = myfont.render(str(self.player.score),True,WHITE)
+			self.countBullet = myfont.render(str(self.player.countBullet),True,WHITE)
 			self.screen.blit(self.text,(0,0))
+			self.screen.blit(self.countBullet,(100,0))
 			pygame.display.update()			
 		pygame.display.quit()
 	def addZombie(self):
@@ -34,7 +36,7 @@ class Game:
 				tmp += 1
 		if tmp == len(self.listZombie):
 			for i in range(1):
-				zombie = Zombie(self.screen,random.randrange(0,700),random.randrange(0,500))
+				zombie = Zombie(self.screen,random.randrange(0,100),random.randrange(0,500))
 				self.listZombie.append(zombie)
 
 	def checkCollision(self):
@@ -44,11 +46,22 @@ class Game:
 					self.player.die = True
 				if self.player.x + 70 >= i.x and self.player.x + 70 <= i.x + 70 and self.player.y + 100 >= i.y and self.player.y + 100 <= i.y + 70:
 					self.player.die = True
+			if i.die == True and i.rand % 2 == 0 and i.use == False:
+				if self.player.x + 70 >= i.x and self.player.y +  69 >= i.y and self.player.x + 70 <= i.x + 70 and self.player.y + 69 <= i.y + 70:
+					self.player.countBullet += 5
+					i.use = True
+				if self.player.x + 70 >= i.x and self.player.x + 70 <= i.x + 70 and self.player.y + 100 >= i.y and self.player.y + 100 <= i.y + 70:
+					i.use = True
+					self.player.countBullet += 5
 		for i in self.player.ammo:
 			if i.posX  > 750 or i.posX < 0:
 				self.player.ammo.remove(i)
+				if self.player.countBullet != 0:
+					self.player.countBullet -= 1
 			if i.posY >550 or i.posY < 0:
 				self.player.ammo.remove(i)
+				if self.player.countBullet != 0:
+					self.player.countBullet -= 1
 		for i in self.listZombie:
 			for j in self.player.ammo:
 				if len(self.listZombie) > 0:
@@ -79,8 +92,8 @@ class Game:
 								self.player.ammo.remove(j)
 			if len(self.listZombie) > 0:
 				i.Draw(self.player.x,self.player.y)
-		print(self.player.die)
-		print(self.player.score)
+		#print(self.player.die)
+		#print(self.player.score)
 class Player:
 	def __init__(self,screen):
 		self.x = WIN_WIDTH // 2
@@ -98,6 +111,7 @@ class Player:
 		self.down = False
 		self.die = False
 		self.score = 0
+		self.countBullet = 30
 		# self.bullet = pygame.draw.circle(self.screen,(255,255,255),(self.posX,self.posY))
 		for i in range(len(ImageChar)):
 			self.image.append(pygame.image.load("images/{}".format(ImageChar[i])))
@@ -134,15 +148,16 @@ class Player:
 				# self.ammo.clear()
 				# print(self.right)
 				self.fire = True
-				for i in range(1):
-					if self.left == True:
-						self.ammo.append(Bullet(self.screen,self.x,self.y+36,-10,0))
-					if self.right == True:
-						self.ammo.append(Bullet(self.screen,self.x+100,self.y+36,10,0))
-					if self.up == True:
-						self.ammo.append(Bullet(self.screen,self.x+38,self.y,0,-10))
-					if self.down == True:
-						self.ammo.append(Bullet(self.screen,self.x+38,self.y+100,0,10))
+				if self.countBullet > 0:
+					for i in range(1):
+						if self.left == True:
+							self.ammo.append(Bullet(self.screen,self.x,self.y+36,-10,0))
+						if self.right == True:
+							self.ammo.append(Bullet(self.screen,self.x+100,self.y+36,10,0))
+						if self.up == True:
+							self.ammo.append(Bullet(self.screen,self.x+38,self.y,0,-10))
+						if self.down == True:
+							self.ammo.append(Bullet(self.screen,self.x+38,self.y+100,0,10))
 	def setFalse(self,s:str):
 		tmp = {
 			"left" : 0,
@@ -171,11 +186,16 @@ class Zombie:
 		self.down = False
 		self.screen = screen
 		self.die = False
+		self.use = False
+		self.rand = random.randrange(0,11)
 		for i in range(len(ImageZombie)):
 			self.images.append(pygame.image.load("images/{}".format(ImageZombie[i])))
 	def Draw(self,cX,cY):
 		if self.die == True:
-			self.screen.blit(pygame.image.load("images/dead.png"),(self.x,self.y))
+			if self.rand % 2 == 0:
+				self.screen.blit(pygame.image.load("images/ammo-Image.png"),(self.x,self.y))
+			else:
+				self.screen.blit(pygame.image.load("images/dead.png"),(self.x,self.y))
 		else:
 			if self.x < cX:
 				self.x += 1
@@ -221,5 +241,6 @@ class Bullet:
 		self.posX = self.posX + self.sX
 		self.posY = self.posY + self.sY
 		pygame.draw.circle(self.screen,(255,255,255),(self.posX,self.posY),5)
-game = Game()
-game.Run()
+if __name__ == "__main__":
+    game = Game()
+    game.Run()
